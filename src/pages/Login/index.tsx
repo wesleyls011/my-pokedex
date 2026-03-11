@@ -11,8 +11,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const theme = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
   const styles = createStyles(theme);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
 
   const handleLogin = () => {
     // Integração de autenticação será adicionada futuramente
