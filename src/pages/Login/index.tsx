@@ -13,6 +13,7 @@ export default function LoginScreen() {
   const theme = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
   const styles = createStyles(theme);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
 
   const handleLogin = () => {
     // Integração de autenticação será adicionada futuramente
