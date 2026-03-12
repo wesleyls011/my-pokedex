@@ -18,7 +18,10 @@ export default function LoginScreen() {
   const handleLogin = () => {
     // Integração de autenticação será adicionada futuramente
     console.log('Login action', { email, password });
-    navigation.navigate('PokemonList');
+    navigation.reset({
+      index: 0,
+      routes: [{name: "PokemonList"}],
+    })
   };
 
   return (
