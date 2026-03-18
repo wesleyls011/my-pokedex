@@ -39,6 +39,13 @@ export default function PokemonListScreen() {
   const styles = createStyles(theme);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'PokemonList'>>();
 
+  function handleLogout() {
+    navigation.reset({
+      index: 0,
+      routes: [{name: "Login"}],
+    })
+  }
+
   const renderItem = ({ item }: { item: PokemonListItem }) => (
     <TouchableOpacity 
       style={styles.card} 
@@ -62,6 +69,12 @@ export default function PokemonListScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.headerTitle}>Pokédex</Text>
+      <TouchableOpacity 
+        style={styles.buttonLogout} 
+        onPress={handleLogout}
+      >
+        <Text style={styles.buttonLogoutText}>Sair</Text>
+      </TouchableOpacity>
       <FlatList
         data={MOCK_POKEMON_LIST}
         keyExtractor={(item) => String(item.id)}

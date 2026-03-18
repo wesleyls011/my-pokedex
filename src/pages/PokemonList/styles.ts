@@ -65,5 +65,18 @@ export const createStyles = (theme: Theme) =>
       width: 72,
       height: 72,
     },
+    buttonLogout: {
+      position: 'absolute',
+      top: 60,
+      right: 24,
+      backgroundColor: theme.colors.accent,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    buttonLogoutText: {
+      color: theme.colors.text,
+      fontSize: 14,
+    },
   });
 
