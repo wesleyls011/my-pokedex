@@ -5,67 +5,99 @@ import { useTheme } from '../../global/themes';
 import { useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../routes';
+import { fetchPokemonDetail, 
+  fetchPokemonSpecies, 
+  type PokemonDetailResponse,
+  type PokemonSpeciesResponse } from '../../services/pokeapi';
 
-const MOCK_POKEMON_DETAIL = {
-  id: 25,
-  name: 'pikachu',
-  imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
-  types: ['electric'],
-  height: 4,
-  weight: 60,
-  stats: [
-    { name: 'hp', value: 35 },
-    { name: 'attack', value: 55 },
-    { name: 'defense', value: 40 },
-    { name: 'speed', value: 90 },
-  ],
-  description:
-    'Whenever Pikachu comes across something new, it blasts it with a jolt of electricity. If you come across a blackened berry, it is evidence that this Pokémon mistook the intensity of its charge.',
-};
+// const MOCK_POKEMON_DETAIL = {
+//   id: 25,
+//   name: 'pikachu',
+//   imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
+//   types: ['electric'],
+//   height: 4,
+//   weight: 60,
+//   stats: [
+//     { name: 'hp', value: 35 },
+//     { name: 'attack', value: 55 },
+//     { name: 'defense', value: 40 },
+//     { name: 'speed', value: 90 },
+//   ],
+//   description:
+//     'Whenever Pikachu comes across something new, it blasts it with a jolt of electricity. If you come across a blackened berry, it is evidence that this Pokémon mistook the intensity of its charge.',
+// };
 
-type PokemonDetailState = { 
-  id: number;
-  name: string;
-  imageUrl: string;
-  types: string[];
-  height: number;
-  weight: number;
-  stats: { name: string; value: number }[];
-  description: string;
-};
+// type PokemonDetailState = { 
+//   id: number;
+//   name: string;
+//   imageUrl: string;
+//   types: string[];
+//   height: number;
+//   weight: number;
+//   stats: { name: string; value: number }[];
+//   description: string;
+// };
 
 export default function PokemonDetailScreen() {
-  const pokemon = MOCK_POKEMON_DETAIL;
   const theme = useTheme();
   const styles = createStyles(theme);
   const route = useRoute<RouteProp<RootStackParamList, 'PokemonDetail'>>();
   const { pokemonId } = route.params;
 
-  const [pokemons, setPokemons] = React.useState<PokemonDetailState | null>(null);
+  const [pokemon, setPokemon] = React.useState<PokemonDetailResponse | null>(null);
+  const [description,setDescription] =React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+function getPokemonDescriptionFromSpecies(
+  species: PokemonSpeciesResponse,
+): string | null {
+  const ptEntry = species.flavor_text_entries.find(
+    (entry) => entry.language.name === 'pt-BR'
+  );
+  if (ptEntry) {
+    return ptEntry.flavor_text.replace(/\s+/g, ' ').replace(/\f/g, ' ').trim();
+  }
+  const enEntry = species.flavor_text_entries.find(
+    (entry) => entry.language.name === 'en',
+  );
+  if (enEntry) {
+    return enEntry.flavor_text.replace(/\s+/g, ' ').replace(/\f/g, ' ').trim();
+  }
+  return null;
+}
+
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
+    const controller = new AbortController();
 
-    const timer = setTimeout(() => {
+    async function loadPokemon() {
       try {
-        setPokemons({
-           ...MOCK_POKEMON_DETAIL, 
-          id: pokemonId
-        });
-      }catch (e) {
-        setError('Falha ao carregar detalhes do pokémon. Tente novamente.');
-        setPokemons(null);
-      } finally {
-        setIsLoading(false);
-      }
-    } ,1500);
+        setIsLoading(true);
+        setError(null);
+        
+        const [detail,species] = await Promise.all([
+          fetchPokemonDetail(pokemonId, { signal: controller.signal }),
+          fetchPokemonSpecies(pokemonId, { signal: controller.signal }),
+        ]);
 
-    return () => clearTimeout(timer);
+        const description = getPokemonDescriptionFromSpecies(species);
+        setPokemon(detail);
+        setDescription(getPokemonDescriptionFromSpecies(species));
+        
+      } catch (e) {
+          if ((e as Error).name === 'AbortError') {
+            setError('Nao foi possivel carregar os dados do pokemon.');
+      } 
+    } finally {
+      setIsLoading(false);
+    }
+  }
+    loadPokemon();
 
-  },[pokemonId]);
+    return () => {controller.abort();
+    }
+
+},[pokemonId])
 
   if (isLoading) {
     return (
@@ -77,7 +109,7 @@ export default function PokemonDetailScreen() {
   }
 
 
-if (error || !pokemons) {
+if (error || !pokemon) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ color: theme.colors.text, marginBottom: 16 }}>
@@ -110,19 +142,20 @@ if (error || !pokemons) {
         </View>
 
         <View style={styles.typeContainer}>
-          {pokemon.types.map((type) => (
-            <View key={type} style={styles.typeBadge}>
-              <Text style={styles.typeText}>{type}</Text>
+          {pokemon.types.map(({type}) => (
+            <View key={type.name} style={styles.typeBadge}>
+              <Text style={styles.typeText}>{type.name}</Text>
             </View>
           ))}
         </View>
 
-        <Image source={{ uri: pokemon.imageUrl }} style={styles.image} />
+         {pokemon.sprites.front_default ? (<Image source={{ uri: pokemon.sprites.front_default }} style={styles.image} />) : null}
+       
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Sobre</Text>
-        <Text style={styles.sectionText}>{pokemon.description}</Text>
+        <Text style={styles.sectionText}>{description ?? 'Descrição não disponível.'}</Text>
       </View>
 
       <View style={styles.section}>
@@ -140,13 +173,12 @@ if (error || !pokemons) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Stats base</Text>
         {pokemon.stats.map((stat) => (
-          <View key={stat.name} style={styles.statRow}>
-            <Text style={styles.statName}>{stat.name.toUpperCase()}</Text>
-            <Text style={styles.statValue}>{stat.value}</Text>
+          <View key={stat.stat.name} style={styles.statRow}>
+            <Text style={styles.statName}>{stat.stat.name.toUpperCase()}</Text>
+            <Text style={styles.statValue}>{stat.base_stat}</Text>
           </View>
         ))}
       </View>
     </ScrollView>
   );
 };
-
