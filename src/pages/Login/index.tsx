@@ -17,8 +17,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const theme = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
   const styles = createStyles(theme);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
 
   const handleLogin = () => {
     setIsLoading(true);
@@ -27,8 +27,8 @@ export default function LoginScreen() {
       console.log('Login action', { email, password });
       navigation.reset({
         index: 0,
-        routes: [{ name: 'PokemonList' }],
-      });
+        routes: [{name: "PokemonList"}],
+      })
       setIsLoading(false);
     }, 1500);    
   };
