@@ -5,6 +5,7 @@ import { useTheme } from '../../global/themes';
 import { useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../routes';
+import { POKEMON_TYPE_COLORS, type PokemonTypeName } from '../../constants/pokemonTypeColors';
 import { fetchPokemonDetail, 
   fetchPokemonSpecies, 
   type PokemonDetailResponse,
@@ -143,7 +144,13 @@ if (error || !pokemon) {
 
         <View style={styles.typeContainer}>
           {pokemon.types.map(({type}) => (
-            <View key={type.name} style={styles.typeBadge}>
+            <View
+              key={type.name}
+              style={[
+                styles.typeBadge,
+                {backgroundColor:  POKEMON_TYPE_COLORS[type.name as PokemonTypeName] ?? theme.colors.accent},
+              ]}
+            >
               <Text style={styles.typeText}>{type.name}</Text>
             </View>
           ))}

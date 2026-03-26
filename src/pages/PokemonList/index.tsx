@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../routes';
 import { fetchPokemonListPage, type PokemonListItemUI } from '../../services/pokeapi';
+import { POKEMON_TYPE_COLORS, type PokemonTypeName } from '../../constants/pokemonTypeColors';
 
 const PAGE_SIZE = 10;
 
@@ -94,13 +95,22 @@ async function loadMore() {
     >
       <View style={styles.cardLeft}>
         <Text style={styles.cardName}>{item.name}</Text>
-        {/* <View style={styles.typeContainer}>
+        <View style={styles.typeContainer}>
           {item.types.map((type) => (
-            <View key={type} style={styles.typeBadge}>
+            <View
+              key={type}
+              style={[
+                styles.typeBadge,
+                {
+                  backgroundColor:
+                    POKEMON_TYPE_COLORS[type as PokemonTypeName] ?? theme.colors.accent,
+                },
+              ]}
+            >
               <Text style={styles.typeText}>{type}</Text>
             </View>
           ))}
-        </View> */}
+        </View>
       </View>
       <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
     </TouchableOpacity>
