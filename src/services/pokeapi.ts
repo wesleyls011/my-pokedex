@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const BASE_URL = 'https://pokeapi.co/api/v2';
 
 type FetchOptions = {
@@ -36,7 +38,7 @@ export type PokemonListItemUI = {
   types: string[];
 }
 
-function extractIdPokemon(url: string) : number {
+function extractIdPokemon(url: string): number {
   const parts = url.split('/').filter(Boolean);
   return Number(parts[parts.length - 1]);
 }
@@ -45,7 +47,7 @@ export async function fetchPokemonListPage(
   limit = 10,
   offset = 0,
   options?: FetchOptions
-) : Promise<{
+): Promise<{
   items: PokemonListItemUI[];
   count: number;
   next: string | null;
@@ -143,4 +145,25 @@ export async function fetchPokemonSpecies(
   return response.json();
 }
 
+export type ViewedPokemon = {
+  id: number;
+  name: string;
+  imageUrl: string;
+  types: string[];
+}
 
+const LAST_VIEWED_KEY = '@mypokedex:last-viewed';
+
+export async function addLastViewed(pokemon: ViewedPokemon): Promise<void> {
+  const current = await getLastViewedPokemons();
+  const updated = [pokemon, ...current.filter((p) => p.id !== pokemon.id)].slice(0, 20);
+  await AsyncStorage.setItem(LAST_VIEWED_KEY, JSON.stringify(updated));
+}
+
+export async function getLastViewedPokemons(): Promise<ViewedPokemon[]> {
+  const raw = await AsyncStorage.getItem(LAST_VIEWED_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw) as ViewedPokemon[];
+}
+
+export const lastViwedPokemons = getLastViewedPokemons;
